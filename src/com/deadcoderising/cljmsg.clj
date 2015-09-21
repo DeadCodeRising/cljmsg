@@ -24,8 +24,8 @@
   (broadcast [:info (str name " joined the chat")]
              clients))
 
-(defn- broadcast-msg [sender msg clients]
-  (broadcast [:new-msg (get-name ref clients) msg]
+(defn- broadcast-msg [sender-ref msg clients]
+  (broadcast [:new-msg (get-name sender-ref clients) msg]
              clients))
 
 (defn- broadcast-leave [ref clients]
@@ -40,6 +40,7 @@
                       (broadcast-join name clients)
                       (recur (add-client name ref clients)))
    [:send ref msg] (do
+                     (println clients)
                      (broadcast-msg ref msg clients)
                      (recur clients))
    :shutdown       (println "Shutting down")
