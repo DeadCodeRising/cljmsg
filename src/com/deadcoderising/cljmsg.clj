@@ -54,7 +54,7 @@
                  (! server [:send @self msg])
                  (recur name server))
    :disconnect (client-prn name "Disconnected")
-   [:exit _ _ _] (client-prn name "Lost connection")))
+   [:exit _ _ _] (client-prn name "Lost connection. Shutting down...")))
 
 (defn create-client [name server]
   (let [c (spawn :trap true client name server)]
