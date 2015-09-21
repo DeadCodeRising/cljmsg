@@ -6,47 +6,33 @@
   (:refer-clojure :exclude [promise await])
   (:gen-class))
 
+(defn- get-name [ref clients]
+  (-> (first (filter #(= (:ref %) ref) clients))
+      :name))
 
 (defn- broadcast [msg clients]
   (doseq [c clients]
     (! (:ref c) msg)))
 
-(defn- get-client [ref clients]
-  (first (filter #(= (:ref %) ref) clients)))
-
-(defn- get-name [ref clients]
-  (:name (get-client ref clients)))
-
-(defn- add-client [name ref clients]
-  (conj clients {:name name :ref ref}))
-
-(defn- broadcast-join [name clients]
-  (broadcast [:info (str name " joined the chat")]
-             clients))
-
-(defn- broadcast-msg [sender-ref msg clients]
-  (broadcast [:new-msg (get-name sender-ref clients) msg]
-             clients))
-
-(defn- broadcast-leave [ref clients]
-  (broadcast [:info (str (get-name ref clients)
-                         " left the chat")]
-             clients))
-
 (defsfn server [clients]
   (receive
    [:join ref name] (do
                       (link! ref)
-                      (broadcast-join name clients)
-                      (recur (add-client name ref clients)))
-   [:send ref msg] (do
-                     (println clients)
-                     (broadcast-msg ref msg clients)
-                     (recur clients))
-   :shutdown       (println "Shutting down")
-   [:exit _ ref _] (do
-                     (broadcast-leave ref clients)
-                     (recur clients))))
+                      (broadcast
+                       [:info (str name " joined the chat")]
+                       clients)
+                      (recur (conj clients {:name name :ref ref})))
+   [:send ref msg]  (do
+                      (broadcast
+                       [:new-msg (get-name ref clients) msg]
+                       clients)
+                      (recur clients))
+   :shutdown        (println "Shutting down")
+   [:exit _ ref _]  (do
+                      (broadcast
+                       [:info (str (get-name ref clients) " left the chat")]
+                       clients)
+                      (recur clients))))
 
 (defn create-server []
   (spawn :trap true server '()))
