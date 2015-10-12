@@ -32,7 +32,7 @@
                       (broadcast
                        [:info (str (get-name ref clients) " left the chat")]
                        clients)
-                      (recur clients))))
+                      (recur (remove #(= (:ref %) ref) clients)))))
 
 (defn create-server []
   (spawn :trap true server '()))
