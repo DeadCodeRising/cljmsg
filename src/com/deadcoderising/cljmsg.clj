@@ -28,11 +28,11 @@
                        clients)
                       (recur clients))
    :shutdown        (println "Shutting down")
-   [:exit _ ref _]  (let [clients (remove #(= (:ref %) ref) clients)]
+   [:exit _ ref _]  (let [updated-clients (remove #(= (:ref %) ref) clients)]
                       (broadcast
                        [:info (str (get-name ref clients) " left the chat")]
-                       clients)
-                      (recur clients))))
+                       updated-clients)
+                      (recur updated-clients))))
 
 (defn create-server []
   (spawn :trap true server '()))
